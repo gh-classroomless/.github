@@ -1,13 +1,23 @@
-# Instructor Guide — deploy this for your school
+# gh-classroomless — a self-hosted GitHub Classroom replacement
 
-`classroom` (this repo, **public**) + `classroom-admin` (**private**) are an issue-driven GitHub
-Classroom replacement: students open a pre-filled Issue, an Action provisions a private repo from a
-template, and you get a who-has-what report. To run it for **your** school, fork both templates and
-do the one-time setup below.
-
-> README.md = the **student**-facing page. This file = the **instructor/deployer** setup.
+### Why this exists
+- **GitHub Classroom shuts down 2026-08-28.** GitHub/Microsoft is retiring it and pushing everyone onto
+  third-party "partner" products.
+- **So we built our own** — a clean, Classroom-like flow we fully control. No vendor, no lock-in.
+- **Less, but solid.** We dropped Classroom's flaky extras and kept only the three things we actually
+  use: **hand out assignment repos**, **grade**, and a **who-has-what list**.
+- **Issue-driven.** A student clicks a link → opens a pre-filled Issue → a GitHub Action does the rest
+  (creates a private repo from a template, sends the invite, logs it). **No server.**
+- **Deploy once, update by fork.** Stand up your school in minutes; pull future improvements with a
+  fork sync. New features always welcome.
 
 ---
+
+## Deploy this for your school
+
+`classroom` (**public**) + `classroom-admin` (**private**) are the two repos per school. To run it for
+**your** school, fork both templates and do the one-time setup below. (Each school's public README is
+the student-facing page; this guide is for the instructor/deployer.)
 
 ## 1. Fork the two templates into your org
 
