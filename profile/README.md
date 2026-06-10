@@ -70,12 +70,27 @@ Assignment **template repos** (the code/tests students get) live in **your org**
 
 ## 4. Secrets (on `<your-org>/classroom`)
 
+Two secrets. **`JOIN_CODE`** is just your class code. **`ORG_PAT`** is a token you must create first:
+
+**Create the `ORG_PAT` (one-time):**
+1. GitHub → your avatar → **Settings** → **Developer settings** (bottom of the left menu) →
+   **Personal access tokens** → **Tokens (classic)** → **Generate new token (classic)**.
+2. Note: `ORG_PAT for <your-org> classroom`. Expiration: 1 year (set a reminder — an expired token
+   silently breaks `request`).
+3. Scopes — check: **`repo`** (full), **`workflow`**, and **`read:org`** (under *admin:org*).
+4. **Generate token** → copy the `ghp_…` value (shown once).
+
+The token must belong to someone who can **create repos in `<your-org>`** (an org owner). Workflows
+then act as that person.
+
+**Set both secrets:**
 ```bash
-gh secret set JOIN_CODE --repo <your-org>/classroom    # your class join code (students enter it to register)
-gh secret set ORG_PAT   --repo <your-org>/classroom    # a classic PAT: scopes repo + read:org + admin:org
+gh secret set JOIN_CODE --repo <your-org>/classroom            # then type/paste your class code
+gh secret set ORG_PAT   --repo <your-org>/classroom            # then paste the ghp_… token
 ```
 `ORG_PAT` lets the workflows create student repos, add the student as a collaborator, and write the
-private admin repo. Never put these in `config.json` (it's public).
+private admin repo. Never put either in `config.json` (it's public). Don't paste the raw token on a
+command line where it lands in shell history — the interactive `gh secret set` (no `--body`) prompts safely.
 
 ## 5. How `classroom` ↔ `classroom-admin` are linked
 
