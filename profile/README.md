@@ -11,6 +11,44 @@
 - **Deploy once, update by fork.** Stand up your school in minutes; pull future improvements with a
   fork sync. New features always welcome.
 
+### How it works in one picture
+
+```
+STUDENT                        <org>/classroom  (PUBLIC)         <org>/classroom-admin  (PRIVATE)
+                               ─────────────────────────         ────────────────────────────────
+clicks a Canvas link
+  │
+  ├─ Register  ──────────────▶ register.yml
+  │                              checks JOIN_CODE ─────────────▶ writes roster/<user>.json
+  │                              redacts + closes the issue
+  │
+  ├─ Request <assignment> ───▶ request.yml
+  │                              is the student in the roster? ◀── reads roster/<user>.json
+  │                              config.json → which template?
+  │                              creates <org>/<course>-<term>-<asmt>-<user>  (PRIVATE, from template)
+  │                              invites the student
+  │                              files the record ─────────────▶ opens a "log:" issue
+  │                              comments the repo + invite, closes
+  │
+  └─ My repos  ──────────────▶ myrepos.yml ────────────────────▶ reads log/*.json → comments a table
+
+INSTRUCTOR (manual, in the admin repo)   log-build  → drains "log:" issues into log/*.json
+                                         roster     → roster.md    (who is in the course)
+                                         repo-report→ REPORT.md    (pass/fail + score per repo)
+```
+
+Three moving parts, and that is the whole system: **issue forms** (what a student can ask for),
+**`config.json`** (what your course offers), **Actions** (everything else). No server, no database.
+
+### Documentation
+
+| | |
+|---|---|
+| **Deploy** — stand up your school | ↓ right below, on this page |
+| [**OPERATE.md**](https://github.com/gh-classroomless/.github/blob/main/OPERATE.md) | running it through a term: add assignments, gate a quiz, refresh reports, close a term |
+| [**TROUBLESHOOT.md**](https://github.com/gh-classroomless/.github/blob/main/TROUBLESHOOT.md) | symptom → cause → fix, including every failure we have actually hit |
+| [**REFERENCE.md**](https://github.com/gh-classroomless/.github/blob/main/REFERENCE.md) | one-page map of repos, files, workflows, secrets, data |
+
 ---
 
 ## Deploy this for your school
@@ -18,6 +56,9 @@
 `classroom` (**public**) + `classroom-admin` (**private**) are the two repos per school. To run it for
 **your** school, create both and do the one-time setup below. (Each school's public README is
 the student-facing page; this guide is for the instructor/deployer.)
+
+**Time:** ~15 minutes, most of it waiting for you to make a token.
+**You need:** an org you can create repos in, and the `gh` CLI (or the GitHub web UI throughout).
 
 ## 1. Create the two repos in your org
 
