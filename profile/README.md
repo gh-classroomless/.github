@@ -16,22 +16,38 @@
 ## Deploy this for your school
 
 `classroom` (**public**) + `classroom-admin` (**private**) are the two repos per school. To run it for
-**your** school, fork both templates and do the one-time setup below. (Each school's public README is
+**your** school, create both and do the one-time setup below. (Each school's public README is
 the student-facing page; this guide is for the instructor/deployer.)
 
-## 1. Fork the two templates into your org
+## 1. Create the two repos in your org
 
-| Template (canonical, in `gh-classroomless`) | Your fork | Visibility |
-|---|---|---|
-| `gh-classroomless/classroom-template` | `<your-org>/classroom` | public |
-| `gh-classroomless/classroom-admin-template` | `<your-org>/classroom-admin` | private |
+The two are made **differently** — `classroom` is a **fork** (so you can pull our code fixes),
+`classroom-admin` is **generated from the template**.
 
-Use GitHub's **Fork** button (set the owner to your org), or the CLI:
+| Template (canonical, in `gh-classroomless`) | Your repo | How | Visibility |
+|---|---|---|---|
+| `gh-classroomless/classroom-template` | `<your-org>/classroom` | **fork** | public |
+| `gh-classroomless/classroom-admin-template` | `<your-org>/classroom-admin` | **template-generate** | **private** |
+
 ```bash
-gh repo fork gh-classroomless/classroom-template       --org <your-org> --fork-name classroom       --clone=false
-gh repo fork gh-classroomless/classroom-admin-template --org <your-org> --fork-name classroom-admin --clone=false
+# classroom = FORK (shares history → updatable later; see "Updating" below)
+gh repo fork gh-classroomless/classroom-template --org <your-org> --fork-name classroom --clone=false
+# classroom-admin = TEMPLATE-GENERATE, and it MUST be private (see the warning below)
+gh repo create <your-org>/classroom-admin --template gh-classroomless/classroom-admin-template --private
 ```
-Fork (not "Use this template") so you can later pull our code fixes — see **Updating** below.
+
+> ### ⛔ Generate the admin repo. Never fork it.
+> Both templates are public, so GitHub will happily let you fork either one — and **a fork of a public
+> repo is public by default.** Your `classroom-admin` accumulates **student names and emails** (plus
+> exam access codes if you use them), so a forked admin is a PII leak with no warning attached. Use
+> `--template … --private` (or "Use this template" → Private) every time, and check the padlock
+> afterwards. The `--private` flag above is not decoration.
+
+Why the difference in method: only a fork shares history with upstream, which is what makes "Sync
+fork" and `git pull` work — so `classroom` is a fork and stays updatable. The admin repo is a
+one-time copy: **we ship no update path for it**, by design (we cannot reach into your org). If we
+later change an admin workflow, you re-copy the file yourself. That is the whole maintenance contract:
+**you own your deployment after this page.**
 
 ## 2. ⚠️ Enable workflows — a fork starts with Actions DISABLED
 
@@ -100,7 +116,34 @@ command line where it lands in shell history — the interactive `gh secret set`
 - **PII boundary:** student name/email + the report live **only** in the private admin repo. The
   public `classroom` repo holds no PII.
 
-## 6. Post the Canvas deep-links (per course)
+## 6. GO LIVE — turn on Issues, then smoke-test
+
+**Your fork's Issues tab is OFF right now.** GitHub turns it off on every fork, and we deliberately
+leave it that way: this system is entirely issue-driven, so **Issues is the front door — the "school
+is open" switch.** Throw it only once steps 1–5 are done.
+
+```bash
+gh api -X PATCH repos/<your-org>/classroom -F has_issues=true
+```
+
+Why last, and not at fork time: with Issues on but the workflows not yet approved (step 2), a student
+opens the form, fills it in, submits — **and nothing ever answers.** No comment, no repo, the issue
+just sits there while they believe they submitted. A door that is visibly shut is far better than one
+that opens onto silence.
+
+**Then smoke-test it yourself, before any student sees a link:**
+1. Register yourself with your own `JOIN_CODE` → the bot should reply "Registered as …" and close it.
+2. Open one **Request** issue → within ~1 minute the bot should reply with a repo link and an invite.
+3. No reply? Work back through: Issues on → workflows approved (step 2) → `ORG_PAT` set (step 4) →
+   `config.json` present (step 3).
+
+> ⚠️ **Do not trust the API to tell you this is working.** `actions/permissions.enabled` reads `true`
+> on a repo whose workflows are still unapproved *and* on one with Issues switched off. It is blind to
+> both. The only proof is a real issue that gets a real reply.
+
+## 7. Post the Canvas deep-links (per course)
+
+Only after the smoke test passes.
 
 ```
 Register: https://github.com/<your-org>/classroom/issues/new?template=01-register.yml&join_code=<CODE>
@@ -117,6 +160,13 @@ preserved (the upstream doesn't contain them, so a merge can't touch them):
 git pull https://github.com/gh-classroomless/classroom-template.git main
 git push
 ```
+
+**This covers `classroom` only.** `classroom-admin` is a one-time copy, not a fork — it shares no
+history, so there is nothing to sync and **we have no way to push anything into your org.** If an
+admin workflow changes upstream, copy the file over yourself from
+`gh-classroomless/classroom-admin-template` (`.github/workflows/`). Watch that repo (or check it each
+term) if you want to know when that happens. **Everything after deployment is yours to run** — that is
+the deal, not an oversight.
 
 ## The dashboard
 
