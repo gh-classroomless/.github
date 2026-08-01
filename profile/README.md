@@ -54,6 +54,10 @@ later change an admin workflow, you re-copy the file yourself. That is the whole
 Because the repo had workflow files when forked, GitHub disables them on your fork until you approve.
 Open each repo's **Actions** tab and click the green button. **Nothing runs until you do this.**
 
+**There is no API for this** — it is the one step nobody can script for you, which is exactly why it
+gets skipped. (Forks also start with the **Issues** tab off; if you used `ops/deploy.sh` that is
+already handled, otherwise see step 6.) Step 6 exists to catch both.
+
 ![Enable workflows on a fork](enable-workflows.png)
 
 Do it on **both** `<your-org>/classroom` **and** `<your-org>/classroom-admin`.
@@ -116,26 +120,21 @@ command line where it lands in shell history — the interactive `gh secret set`
 - **PII boundary:** student name/email + the report live **only** in the private admin repo. The
   public `classroom` repo holds no PII.
 
-## 6. GO LIVE — turn on Issues, then smoke-test
+## 6. Smoke-test — prove it runs, before any student sees a link
 
-**Your fork's Issues tab is OFF right now.** GitHub turns it off on every fork, and we deliberately
-leave it that way: this system is entirely issue-driven, so **Issues is the front door — the "school
-is open" switch.** Throw it only once steps 1–5 are done.
+Everything is in place now. Nothing has actually been *run*, so run it yourself once:
 
-```bash
-gh api -X PATCH repos/<your-org>/classroom -F has_issues=true
-```
-
-Why last, and not at fork time: with Issues on but the workflows not yet approved (step 2), a student
-opens the form, fills it in, submits — **and nothing ever answers.** No comment, no repo, the issue
-just sits there while they believe they submitted. A door that is visibly shut is far better than one
-that opens onto silence.
-
-**Then smoke-test it yourself, before any student sees a link:**
-1. Register yourself with your own `JOIN_CODE` → the bot should reply "Registered as …" and close it.
+1. Open the **Register** link below with your own `JOIN_CODE` → the bot should reply
+   "Registered as …" and close the issue.
 2. Open one **Request** issue → within ~1 minute the bot should reply with a repo link and an invite.
-3. No reply? Work back through: Issues on → workflows approved (step 2) → `ORG_PAT` set (step 4) →
+3. No reply? Work back through: **workflows approved (step 2)** → `ORG_PAT` set (step 4) →
    `config.json` present (step 3).
+
+Step 2 is the usual culprit — it is the one thing here with no API, so it is the one thing that gets
+forgotten. (Issues, the other fork default, is already handled: `ops/deploy.sh` switches it on right
+after the fork. If you created the repos by hand instead, turn it on with
+`gh api -X PATCH repos/<your-org>/classroom -F has_issues=true` — with Issues off there is no form to
+open at all.)
 
 > ⚠️ **Do not trust the API to tell you this is working.** `actions/permissions.enabled` reads `true`
 > on a repo whose workflows are still unapproved *and* on one with Issues switched off. It is blind to
