@@ -118,6 +118,20 @@ closed one was already recorded, and `log-build` skips a record that already exi
 
 ---
 
+## repo-report (or roster) fails right after archive-term, with no message
+
+The run fails in its build step and prints nothing before `Process completed with exit code 1`.
+
+**Cause:** the admin repo has no `log/` folder any more. git stores no empty folder, so an admin repo
+whose `log/` held no `.gitkeep` lost the folder when archive-term moved every record out; the record
+count then fails, and Actions runs steps under `bash -e`, which stops at the first failure without a
+message (2026-10-16, one school).
+
+**Fix:** add an empty `log/.gitkeep` (and `reports/.gitkeep`, `roster/.gitkeep`) and re-run. The
+template ships all three; only admin repos generated from an older copy lack them.
+
+---
+
 ## A student got a quiz repo without the code
 
 Check *when*. If the repo predates the moment you gated the quiz, the code cannot retroactively take

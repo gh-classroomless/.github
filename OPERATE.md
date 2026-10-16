@@ -19,7 +19,7 @@ If you find yourself hand-editing a generated file, stop; the next run will over
 | Before you look at any report | run **log-build** | admin → Actions |
 | When you want the roster | run **roster** | admin → Actions |
 | When you want pass/fail | run **repo-report** | admin → Actions |
-| End of term | archive, then reset for the next one | admin |
+| End of term | move every course to the next term, then run **archive-term** | `config.json`, then admin → Actions |
 
 ---
 
@@ -102,7 +102,7 @@ stops new requests.
 
 ---
 
-## Reports (admin repo, all manual)
+## Reports (admin repo)
 
 **Run `log-build` first.** `request.yml` files each provisioning record as an *issue* rather than a
 commit (concurrent commits to one branch collide with HTTP 409 and students get dropped silently).
@@ -118,8 +118,12 @@ admin → Actions → repo-report  → Run workflow → course: cs120
 - **roster** → `roster.md` + `reports/cs120-roster.md`: who is in the course, each name linking to
   that student's repos. Membership comes from **having requested a repo** — registration alone carries
   no course, so a student who registered and never requested appears nowhere.
-- **repo-report** → `REPORT.md` + `reports/cs120-<assignment>.md`: autograder pass/fail and score per
-  repo, read from each repo's latest push run.
+- **repo-report** → `repo-report.md` + `README.md` (the admin repo's front page) +
+  `reports/cs120-<assignment>.md`: autograder pass/fail and score per repo, read from each repo's
+  latest push run.
+
+Both always show the CURRENT term — whatever is in `log/`. There is no term input; a finished term
+is read from `archive/<term>/` (see End of term).
 
 Both are per-course on purpose; running all courses is slow and you rarely need it.
 
@@ -130,11 +134,23 @@ the morning and it seems current, that is why — but after a busy afternoon, ru
 
 ## End of term
 
-1. Run **log-build** one last time so nothing is stuck in the issue queue.
-2. Archive: move `log/*.json` into `log/archive/<term>/` (`ops/archive-term.sh` if you have the ops
-   tooling). Past-term reports are then produced by passing `semester` to roster/repo-report — they
-   write `roster-<term>.md` / `repo-report-<term>.md` and never overwrite the live pages.
-3. Bump `semester` in `config.json` and swap in the new term's assignments.
+1. **`config.json` first.** Move every course off the finished term: bump `semester` and swap in the
+   new term's assignments, or remove a course you are not teaching next term. archive-term refuses
+   while ANY course is still on the term you ask it to archive — that is what stops a mid-term click.
+2. **admin → Actions → archive-term → Run workflow → the finished term** (e.g. `su26`). Do it the same
+   day, before the next 05:00 log-build drains new-term requests into `log/`. It runs log-build →
+   roster → repo-report for a final snapshot, then moves the term in one commit (git mv, nothing
+   deleted):
+   ```
+   archive/<term>/   log/*.json · reports/* · roster.md · repo-report.md
+   stays live        roster/ · quiz-codes.json · README.md
+   ```
+   It refuses, and moves nothing, when: a course in `config.json` is still on the term · `config.json`
+   cannot be read · `log/` holds no record of the term (a typo) · `log/` also holds another term ·
+   `archive/<term>/` already exists.
+3. A past term is read from `archive/<term>/roster.md` and `archive/<term>/repo-report.md` — same
+   layout as the live pages, so every link inside still works. The live pages start empty and fill
+   as the new term's requests arrive; `README.md` refreshes on the next repo-report run.
 4. Leave `roster/` alone — registration is per person, not per term, and returning students should not
    have to register again.
 
@@ -152,3 +168,7 @@ the morning and it seems current, that is why — but after a busy afternoon, ru
 - **A removed assignment does not remove repos**, and a deleted repo *can* be re-created by the same
   student re-requesting (with the code, if it is gated).
 - **Reports lie if you skip log-build.** They are only as fresh as `log/`.
+- **Keep the `.gitkeep` in `log/`, `reports/` and `roster/`.** git stores no empty folder: without it,
+  archiving a term empties `log/`, the folder vanishes, and the next repo-report / roster fails
+  before printing anything. An admin repo generated from an older copy of the template may lack them —
+  add three empty files.

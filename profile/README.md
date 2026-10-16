@@ -32,9 +32,10 @@ clicks a Canvas link
   │
   └─ My repos  ──────────────▶ myrepos.yml ────────────────────▶ reads log/*.json → comments a table
 
-INSTRUCTOR (manual, in the admin repo)   log-build  → drains "log:" issues into log/*.json
-                                         roster     → roster.md    (who is in the course)
-                                         repo-report→ REPORT.md    (pass/fail + score per repo)
+INSTRUCTOR (in the admin repo)   log-build    → drains "log:" issues into log/*.json     nightly 05:00 PT + manual
+                                 roster       → roster.md      (who is in the course)    manual
+                                 repo-report  → repo-report.md + README.md (pass/fail)   nightly 05:20 PT + manual
+                                 archive-term → freezes a finished term in archive/<term>/  manual, once a term
 ```
 
 Three moving parts, and that is the whole system: **issue forms** (what a student can ask for),
@@ -118,9 +119,8 @@ automatically — so a request form exists for each course you list.
       "semester": "sp26",
       "assignments": {
         "A00": "cs101-template-repo-name",                 // normal: value = the template repo to clone
-        "Q1":  { "template": "cs101-exam-repo",            // exam: time-gated
-                 "available_from": "2026-06-29T00:00:00-07:00",
-                 "available_until": "2026-08-15T23:59:59-07:00" }
+        "Q1":  { "template": "cs101-exam-repo",            // exam: code-gated — the code itself goes in
+                 "requires_code": true }                   //   the PRIVATE admin repo (see OPERATE.md)
       },
       "student_repo_pattern": "cs101-{semester}-{assignment}-{username}"
     }
@@ -210,4 +210,6 @@ the deal, not an oversight.
 
 ## The dashboard
 
-On `<your-org>/classroom-admin`: **Actions → report → Run workflow** → read `REPORT.md`.
+On `<your-org>/classroom-admin`: open `README.md` (or `repo-report.md`) — rebuilt nightly at 05:20 PT.
+To refresh now: **Actions → log-build → Run workflow**, then **Actions → repo-report → Run workflow**.
+Finished terms are in `archive/<term>/`. Running a term, closing it: [OPERATE.md](https://github.com/gh-classroomless/.github/blob/main/OPERATE.md).

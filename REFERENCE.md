@@ -30,6 +30,7 @@ repo holds student names, emails and exam codes.
 | `log/<repo>.json` | `log-build` (draining `log:` issues filed by `request.yml`) |
 | `roster.md`, `reports/<course>-roster.md` | `roster` workflow |
 | `README.md`, `repo-report.md`, `reports/<course>-<asmt>.md` | `repo-report` workflow |
+| `archive/<term>/` (`log/`, `reports/`, `roster.md`, `repo-report.md`) | `archive-term` workflow — a finished term, frozen |
 
 ## Workflows
 
@@ -42,6 +43,10 @@ repo holds student names, emails and exam codes.
 | `log-build.yml` | admin | manual + nightly 05:00 PT | drain `log:` issues into `log/*.json` in one commit |
 | `roster.yml` | admin | manual | build the per-course roster |
 | `repo-report.yml` | admin | manual + nightly 05:20 PT | build pass/fail + score per repo |
+| `archive-term.yml` | admin | manual, one input: the finished term | refuse while `config.json` still has a course on it → log-build → roster → repo-report → move the term into `archive/<term>/` |
+
+`roster` and `repo-report` read only the CURRENT term (`log/`) and take no term input; a finished
+term is read from `archive/<term>/`. All admin workflows skip the template repo itself.
 
 `gen-forms` is the only `push`-triggered workflow, and it is loop-safe: it commits with
 `GITHUB_TOKEN` (which cannot re-trigger workflows) and writes a different path than it watches.
@@ -95,8 +100,7 @@ Always keep `{course}` in the pattern — a literal course name collides when yo
 | `ops/deploy.sh <org>` | fork `classroom`, turn Issues on, generate `classroom-admin`, print the next steps |
 | `ops/config.sh <org> …` | `add-course` / `add-assignment` / `add-quiz` / `remove-assignment` / `list` |
 | `ops/propagate.sh <orgs…>` | merge the template's code into each school's `classroom` |
-| `ops/propagate-admin.sh <orgs…>` | overwrite the admin workflow files (no shared history, so no merge) |
-| `ops/archive-term.sh` | move a finished term's `log/` into `log/archive/<term>/` |
+| `ops/propagate-admin.sh [--file <name>] <orgs…>` | overwrite the admin workflow files (no shared history, so no merge), then re-read and verify each |
 
 ## Facts worth memorising
 
