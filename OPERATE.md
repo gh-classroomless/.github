@@ -7,6 +7,10 @@ the year: what you touch, when, and what you must never touch.
 (private admin repo). Everything else — the request forms, the roster, the reports — is generated.
 If you find yourself hand-editing a generated file, stop; the next run will overwrite it.
 
+**`ops/config.sh …` lines below are the maintainer's local shortcut — that script is not shipped.**
+Every one of them is just an edit of those two files, shown next to it; doing it on the GitHub web
+editor is the same thing.
+
 ---
 
 ## The rhythm of a term
@@ -68,6 +72,11 @@ That one command does three things, in this order:
    **the flag only, never the code** (that repo is public);
 3. regenerates the forms, so the course's request form grows an **Access code** box.
 
+By hand, in the same order: add the code to `classroom-admin/quiz-codes.json`
+(`{"cs120": {"Q1": "CS120Q1-8xk2"}}`; create the file if it is missing), then set the entry in
+`config.json` to `"Q1": {"template": "CS120Q1Starter", "requires_code": true}` — the push regenerates
+the forms.
+
 **Then put the same code inside the Canvas quiz** — in a question, not the description, so a student
 only sees it once they actually start the attempt. That is the whole point: the release trigger
 becomes the attempt, not the clock.
@@ -97,6 +106,7 @@ for exam secrecy — for that, use the code.
 ```bash
 ops/config.sh <ORG> remove-assignment cs120 A01
 ```
+By hand: delete the `"A01": …` line from `config.json`.
 It disappears from the dropdown. **Existing student repos are untouched** — removing the entry only
 stops new requests.
 

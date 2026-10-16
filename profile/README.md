@@ -74,6 +74,8 @@ The two are made **differently** — `classroom` is a **fork** (so you can pull 
 ```bash
 # classroom = FORK (shares history → updatable later; see "Updating" below)
 gh repo fork gh-classroomless/classroom-template --org <your-org> --fork-name classroom --clone=false
+# a fork starts with the Issues tab OFF — every student path is an issue form, so turn it on
+gh api -X PATCH repos/<your-org>/classroom -F has_issues=true
 # classroom-admin = TEMPLATE-GENERATE, and it MUST be private (see the warning below)
 gh repo create <your-org>/classroom-admin --template gh-classroomless/classroom-admin-template --private
 ```
@@ -97,8 +99,8 @@ Because the repo had workflow files when forked, GitHub disables them on your fo
 Open each repo's **Actions** tab and click the green button. **Nothing runs until you do this.**
 
 **There is no API for this** — it is the one step nobody can script for you, which is exactly why it
-gets skipped. (Forks also start with the **Issues** tab off; if you used `ops/deploy.sh` that is
-already handled, otherwise see step 6.) Step 6 exists to catch both.
+gets skipped. (Forks also start with the **Issues** tab off; step 1 turned it on.) Step 6 exists to
+catch both.
 
 ![Enable workflows on a fork](enable-workflows.png)
 
@@ -129,9 +131,10 @@ automatically — so a request form exists for each course you list.
 ```
 Assignment **template repos** (the code/tests students get) live in **your org**, not here.
 
-## 4. Secrets (on `<your-org>/classroom`)
+## 4. Secrets
 
-Two secrets. **`JOIN_CODE`** is just your class code. **`ORG_PAT`** is a token you must create first:
+Three secrets — two on `<your-org>/classroom`, one on `<your-org>/classroom-admin`.
+**`JOIN_CODE`** is just your class code. **`ORG_PAT`** is a token you must create first:
 
 **Create the `ORG_PAT` (one-time):**
 1. GitHub → your avatar → **Settings** → **Developer settings** (bottom of the left menu) →
@@ -150,7 +153,15 @@ gh secret set JOIN_CODE --repo <your-org>/classroom            # then type/paste
 gh secret set ORG_PAT   --repo <your-org>/classroom            # then paste the ghp_… token
 ```
 `ORG_PAT` lets the workflows create student repos, add the student as a collaborator, and write the
-private admin repo. Never put either in `config.json` (it's public). Don't paste the raw token on a
+private admin repo.
+
+**The third secret, on the admin repo:** `repo-report` reads each student repo's autograder run, and
+the admin repo's built-in token cannot see other repos. Give it a token that can read your private
+student repos — a classic PAT with the **`repo`** scope (the `ORG_PAT` above qualifies):
+```bash
+gh secret set ORG_REPO_TOKEN --repo <your-org>/classroom-admin   # then paste the ghp_… token
+```
+Without it, repo-report still runs but cannot show pass/fail or scores. Never put either in `config.json` (it's public). Don't paste the raw token on a
 command line where it lands in shell history — the interactive `gh secret set` (no `--body`) prompts safely.
 
 ## 5. How `classroom` ↔ `classroom-admin` are linked
@@ -172,10 +183,8 @@ Everything is in place now. Nothing has actually been *run*, so run it yourself 
    `config.json` present (step 3).
 
 Step 2 is the usual culprit — it is the one thing here with no API, so it is the one thing that gets
-forgotten. (Issues, the other fork default, is already handled: `ops/deploy.sh` switches it on right
-after the fork. If you created the repos by hand instead, turn it on with
-`gh api -X PATCH repos/<your-org>/classroom -F has_issues=true` — with Issues off there is no form to
-open at all.)
+forgotten. (Issues, the other fork default, was switched on in step 1 — with Issues off there is no
+form to open at all.)
 
 > ⚠️ **Do not trust the API to tell you this is working.** `actions/permissions.enabled` reads `true`
 > on a repo whose workflows are still unapproved *and* on one with Issues switched off. It is blind to
