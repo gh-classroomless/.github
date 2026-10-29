@@ -122,7 +122,7 @@ without it they show stale data.
 ```
 admin → Actions → log-build    → Run workflow     (drains the queue)
 admin → Actions → roster       → Run workflow → course: cs120
-admin → Actions → repo-report  → Run workflow → course: cs120 · results: none / changed / all
+admin → Actions → repo-report  → Run workflow → course: cs120 · results: none / changed
 ```
 
 **`results`** (a dropdown, default `none`) decides whether repo-report fills Result and Score —
@@ -132,10 +132,13 @@ the only part that costs GitHub API calls:
 |---|---|---|
 | `none` | left empty — the list of who has which repo, nothing else | seconds |
 | `changed` | re-checked only for repos pushed since the last check; the rest keep their last result | the first run checks everything; after that, seconds |
-| `all` | every repo re-checked; deleted repos are dropped | minutes |
+| `all` | every repo re-checked; deleted repos are dropped | minutes — **not for normal use** |
 
-The nightly run uses `none`. Run `changed` when you want scores (e.g. after a deadline), and `all`
-now and then — it is the only mode that notices a deleted repo or a re-run without a new push.
+The nightly run uses `changed`, so each morning the scores are current as of 05:20. Run `changed`
+yourself when you want them fresher (e.g. right after a deadline). Leave `all` alone: it costs
+about two API calls per repo — on a large school, half the token's hourly budget — and the only
+things it adds (noticing a deleted repo, or a re-run without a new push) do not change a grade.
+To check one repo, open its link.
 
 - **roster** → `roster.md` + `reports/cs120-roster.md`: who is in the course, each name linking to
   that student's repos. Membership comes from **having requested a repo** — registration alone carries
@@ -149,9 +152,10 @@ is read from `archive/<term>/` (see End of term).
 
 Both are per-course on purpose; running all courses is slow and you rarely need it.
 
-There is also a **nightly cron** (log-build 05:00, repo-report 05:20 PT, `results` = none). If the
-repo list looked current in the morning, that is why — but after a busy afternoon, run log-build
-yourself.
+There is also a **nightly cron** (log-build 05:00, repo-report 05:20 PT, `results` = changed). If
+the repo list looked current in the morning, that is why — but after a busy afternoon, run log-build
+yourself before repo-report: repo-report reads only `log/`, so a repo requested since the last
+log-build is not in its tables.
 
 ### The same report on your own machine, in seconds
 
@@ -162,15 +166,15 @@ and whether it passes right now — repos made in class today included — witho
 git clone https://github.com/<your-org>/classroom-admin.git
 python3 classroom-admin/.github/scripts/repo_report.py --course cs120                      # repo list only
 python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --results changed    # + pass/fail, score
-python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --assignment A01 --results all
+python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --assignment A01 --results changed
 python3 classroom-admin/.github/scripts/repo_report.py --help                              # every option
 ```
 
 - **Needs:** Python 3.9+, the clone, and `gh auth login` (answer Yes to "Authenticate Git"). One
   login covers both the `git pull` and the API calls.
 - **Each run:** `git pull`, then the open `log:` issues not drained yet (marked `(pending)`), then —
-  with `--results changed` or `all`, the same rules as the Action's `results` input — each repo's
-  latest run and score.
+  with `--results changed`, the same rules as the Action's `results` input — each repo's latest run
+  and score. (`--results all` exists, like the Action's, and is not for normal use.)
 - **Output:** `classroom-admin/local/reports/<course>[-<assignment>]-repo-report.md` and the same
   report as `.html`. Open the `.html` in a browser: type in the search box to keep only matching
   rows (a name, a username, `fail`), and click a repo name to open it on GitHub. A rerun overwrites
