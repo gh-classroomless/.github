@@ -155,8 +155,10 @@ python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --assignme
   login covers both the `git pull` and the API calls.
 - **Each run:** `git pull`, then the open `log:` issues not drained yet (marked `(pending)`), then
   each repo's latest run and score.
-- **Output:** `classroom-admin/local/reports/<course>[-<assignment>]-repo-report.md`. A rerun
-  overwrites it. `local/` is in the repo's `.gitignore`, so `git pull` always works.
+- **Output:** `classroom-admin/local/reports/<course>[-<assignment>]-repo-report.md` and the same
+  report as `.html`. Open the `.html` in a browser: type in the search box to keep only matching
+  rows (a name, a username, `fail`), and click a repo name to open it on GitHub. A rerun overwrites
+  both. `local/` is in the repo's `.gitignore`, so `git pull` always works.
 - **Read-only:** the tools never commit, push or close an issue. The Actions' files stay the record.
 - **Speed:** a finished run is cached, so a second report re-reads only repos with a new push.
 
