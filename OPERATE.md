@@ -140,6 +140,26 @@ Both are per-course on purpose; running all courses is slow and you rarely need 
 There is also a **nightly cron** (log-build 05:00, repo-report 05:20 PT). If you looked at a report in
 the morning and it seems current, that is why — but after a busy afternoon, run log-build yourself.
 
+### The same report on your own machine, in seconds
+
+Every `classroom-admin` carries two read-only tools in `.github/scripts/`. They show who has a repo
+and whether it passes right now — repos made in class today included — without running an Action.
+
+```bash
+git clone https://github.com/<your-org>/classroom-admin.git
+python3 classroom-admin/.github/scripts/repo_report.py --course cs120                   # whole course
+python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --assignment A01  # one assignment
+```
+
+- **Needs:** Python 3.9+, the clone, and `gh auth login` (answer Yes to "Authenticate Git"). One
+  login covers both the `git pull` and the API calls.
+- **Each run:** `git pull`, then the open `log:` issues not drained yet (marked `(pending)`), then
+  each repo's latest run and score.
+- **Output:** `classroom-admin/local/reports/<course>[-<assignment>]-repo-report.md`. A rerun
+  overwrites it. `local/` is in the repo's `.gitignore`, so `git pull` always works.
+- **Read-only:** the tools never commit, push or close an issue. The Actions' files stay the record.
+- **Speed:** a finished run is cached, so a second report re-reads only repos with a new push.
+
 ---
 
 ## End of term
