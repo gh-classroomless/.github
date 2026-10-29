@@ -122,23 +122,36 @@ without it they show stale data.
 ```
 admin → Actions → log-build    → Run workflow     (drains the queue)
 admin → Actions → roster       → Run workflow → course: cs120
-admin → Actions → repo-report  → Run workflow → course: cs120
+admin → Actions → repo-report  → Run workflow → course: cs120 · results: none / changed / all
 ```
+
+**`results`** (a dropdown, default `none`) decides whether repo-report fills Result and Score —
+the only part that costs GitHub API calls:
+
+| `results` | Result / Score | Time on a ~1,200-repo school |
+|---|---|---|
+| `none` | left empty — the list of who has which repo, nothing else | seconds |
+| `changed` | re-checked only for repos pushed since the last check; the rest keep their last result | the first run checks everything; after that, seconds |
+| `all` | every repo re-checked; deleted repos are dropped | minutes |
+
+The nightly run uses `none`. Run `changed` when you want scores (e.g. after a deadline), and `all`
+now and then — it is the only mode that notices a deleted repo or a re-run without a new push.
 
 - **roster** → `roster.md` + `reports/cs120-roster.md`: who is in the course, each name linking to
   that student's repos. Membership comes from **having requested a repo** — registration alone carries
   no course, so a student who registered and never requested appears nowhere.
 - **repo-report** → `repo-report.md` + `README.md` (the admin repo's front page) +
-  `reports/cs120-<assignment>.md`: autograder pass/fail and score per repo, read from each repo's
-  latest push run.
+  `reports/cs120-<assignment>.md`: each repo, and — per `results` — its autograder pass/fail and
+  score, read from the repo's latest push run.
 
 Both always show the CURRENT term — whatever is in `log/`. There is no term input; a finished term
 is read from `archive/<term>/` (see End of term).
 
 Both are per-course on purpose; running all courses is slow and you rarely need it.
 
-There is also a **nightly cron** (log-build 05:00, repo-report 05:20 PT). If you looked at a report in
-the morning and it seems current, that is why — but after a busy afternoon, run log-build yourself.
+There is also a **nightly cron** (log-build 05:00, repo-report 05:20 PT, `results` = none). If the
+repo list looked current in the morning, that is why — but after a busy afternoon, run log-build
+yourself.
 
 ### The same report on your own machine, in seconds
 
@@ -147,14 +160,17 @@ and whether it passes right now — repos made in class today included — witho
 
 ```bash
 git clone https://github.com/<your-org>/classroom-admin.git
-python3 classroom-admin/.github/scripts/repo_report.py --course cs120                   # whole course
-python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --assignment A01  # one assignment
+python3 classroom-admin/.github/scripts/repo_report.py --course cs120                      # repo list only
+python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --results changed    # + pass/fail, score
+python3 classroom-admin/.github/scripts/repo_report.py --course cs120 --assignment A01 --results all
+python3 classroom-admin/.github/scripts/repo_report.py --help                              # every option
 ```
 
 - **Needs:** Python 3.9+, the clone, and `gh auth login` (answer Yes to "Authenticate Git"). One
   login covers both the `git pull` and the API calls.
-- **Each run:** `git pull`, then the open `log:` issues not drained yet (marked `(pending)`), then
-  each repo's latest run and score.
+- **Each run:** `git pull`, then the open `log:` issues not drained yet (marked `(pending)`), then —
+  with `--results changed` or `all`, the same rules as the Action's `results` input — each repo's
+  latest run and score.
 - **Output:** `classroom-admin/local/reports/<course>[-<assignment>]-repo-report.md` and the same
   report as `.html`. Open the `.html` in a browser: type in the search box to keep only matching
   rows (a name, a username, `fail`), and click a repo name to open it on GitHub. A rerun overwrites

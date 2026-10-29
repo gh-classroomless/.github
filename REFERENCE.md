@@ -42,7 +42,7 @@ repo holds student names, emails and exam codes.
 | `gen-forms.yml` | classroom | **push** to `config.json` | regenerate `request-*.yml` |
 | `log-build.yml` | admin | manual + nightly 05:00 PT | drain `log:` issues into `log/*.json` in one commit |
 | `roster.yml` | admin | manual | build the per-course roster |
-| `repo-report.yml` | admin | manual + nightly 05:20 PT | build pass/fail + score per repo |
+| `repo-report.yml` | admin | manual + nightly 05:20 PT | build the per-assignment repo tables; input `results` = `none` (default, nightly: no API, Result/Score empty) · `changed` (re-check repos pushed since the last check) · `all` (re-check every repo, drop deleted ones) |
 | `archive-term.yml` | admin | manual, one input: the finished term | refuse while `config.json` still has a course on it → log-build → roster → repo-report → move the term into `archive/<term>/` |
 
 `roster` and `repo-report` read only the CURRENT term (`log/`) and take no term input; a finished
