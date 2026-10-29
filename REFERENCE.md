@@ -93,6 +93,19 @@ The **title prefix** decides which workflow reacts — that is why the forms, no
 ```
 Always keep `{course}` in the pattern — a literal course name collides when you copy a block.
 
+## Local tools (in every `classroom-admin`, run by you from a clone)
+
+| File | What |
+|---|---|
+| `.github/scripts/repo_report.py --course <c> [--assignment <CODE>]` | the repo report on your machine in seconds, repos made today included → `local/reports/<…>-repo-report.md` + `.html` (search box) |
+| `.github/scripts/log_build.py` | `git pull` + the open `log:` issues not drained yet → `local/pending/` (run by `repo_report.py` first) |
+| `.github/scripts/hub_common.py` | shared helpers — Python standard library + a GitHub token |
+| `.gitignore` | `local/` — what the tools write is never committed |
+
+Read-only: they never commit, push or close an issue. Needs Python 3.9+ and `gh auth login`.
+Usage: [OPERATE.md](OPERATE.md) "The same report on your own machine". They ship from
+`gh-classroomless/classroom-admin-template` like the workflows (copy them over to update).
+
 ## Ops scripts (maintainer's machine, never shipped into a school repo)
 
 | Script | What |
